@@ -1,3 +1,11 @@
+"""Centers subimage on the image
+
+Given the sensor size and intrinsic borders (hard-coded), 
+and desired sub-image size, produces the top and left borders 
+such as to center image on the sensor (and the microscope field of view).
+
+"""
+
 import wx
 
 TELI_Xsensor = 1392
@@ -47,4 +55,3 @@ if __name__ == "__main__":
 	frame = CenterTeliImage(None, -1)
 	frame.Show()
 	app.MainLoop()
-	

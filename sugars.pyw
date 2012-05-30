@@ -1,7 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""R = C*M
+"""Calculate concentrations of sugar solutions complementary to dextran.
+
+Given molar mass of dextran and desired weight% concentration of dextran,
+produces concentrations of glucose and sucrose such that density and osmolarity 
+of (dextran+glucose) and (sucrose) are equal.
+
+R = C*M
+
+Variables names convention
+R
+	concentration in g/l=mg/ml
+
+C
+	concentration in mol/l=mmol/ml=M
+	
+M
+	molar mass in g/mol=mg/mmol
 
 d
 	dextran

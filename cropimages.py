@@ -1,3 +1,11 @@
+"""Crop images from pipette aspiration experiment.
+
+Crops images from pipette aspiration experiment according to parameters 
+stored in 'vampy.cfg' to reduce the disk size or to allow splitting the image if 
+two pipettes are visible. The vampy.cfg file is then rewritten with zero crops.
+
+"""
+
 import glob
 import Image
 import sys
@@ -6,6 +14,7 @@ import os
 CONFIGFILE = 'vampy.cfg'
 
 def read_conf_file(filename):
+	"""Read VAMPy configuration file."""
     imgcfg = {}
     try:
         conffile = open(filename, 'r')
@@ -19,6 +28,7 @@ def read_conf_file(filename):
     return imgcfg
     
 def rewrite_conf_file(params, filename):
+	"""Rewrite VAMPy configuration file."""
     for side in ('left', 'right', 'top', 'bottom'):
         params[side] = '0'
     file = open(filename, 'w')
@@ -31,6 +41,7 @@ def rewrite_conf_file(params, filename):
     file.close()
     
 def cropnsave(dirname):
+	"""Perform crop of all files in a folder and save them in another folder."""
     savedir = dirname+'-croped'
     os.mkdir(savedir)
     configfile = os.path.join(dirname, CONFIGFILE)

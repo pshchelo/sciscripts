@@ -1,3 +1,4 @@
+"""Renames fluctuation analysis image files saved with wrong year in their name."""
 import glob
 import os
 

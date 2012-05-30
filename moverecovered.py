@@ -1,3 +1,5 @@
+"""Moves all recovered files of given extension to a predefined folder."""
+
 import os
 import sys
 import glob

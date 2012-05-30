@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Calculate centrifuge parameters
-"""
+"""Calculate centrifuge parameters."""
+
 import math
 import sys
 from PySide import QtCore, QtGui
