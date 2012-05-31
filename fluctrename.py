@@ -6,6 +6,7 @@ and the experiment number for easier storing and comparison with back up copy.
 """
 import os
 from glob import iglob
+import datetime
 
 
 globpatterns = {
@@ -14,12 +15,17 @@ globpatterns = {
 'day': '[0-3][0-9]',
 }
 
-# for my fluctuation image files with all-numeric, no-dashes ets names
-PATTERN = '%(year)s%(month)s%(day)s[0-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9].tif'%globpatterns
-
+# for my fluctuation image files with all-numeric names with dashes
+PATTERN = 'img[0-9][0-9][0-9][0-9][0-9][0-9]_*.tif'
 fnames = iglob(PATTERN)
+print "Starting rename..."
+
 for f in fnames:
-	dir1 = '-'.join((f[:4], f[4:6], f[6:8]))
-	dir2=f[8:10]
-	dest = os.path.join(dir1, dir2, f)
-	os.renames(f, dest)
+    mtstamp = os.path.getmtime(f)
+    date = datetime.datetime.fromtimestamp(mtstamp)
+    dir = str(date)[:10]
+    basedir='../tiff'
+    dest = os.path.join(basedir, dir, f)
+    os.renames(f, dest)
+
+print "Finished rename."
