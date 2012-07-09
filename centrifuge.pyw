@@ -104,7 +104,7 @@ class Centrifuge(QtGui.QWidget):
         r2 = self.maxrotationradius.value()  # in whatever
         
         # in (rad/sec)**2, 1e9 due to diameter in um and visosity in cP
-        angvelsqr = 18e9*visc_out*math.log(r2/r1) / (math.sqrt(2) *
+        angvelsqr = math.sqrt(2)*18e9*visc_out*math.log(r2/r1) / (
                     diameter**2 * time * (density_in - density_out))
         #in rpm
         angvel = math.sqrt(angvelsqr)*30/math.pi
