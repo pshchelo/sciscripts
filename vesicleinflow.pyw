@@ -29,31 +29,46 @@ def set_mode():
 def tanktread():
     vesicle.axis = (1,1,0)
     vesicle.length = Lves
+    vesicle.width = Wves
+    vesicle.hight = Wves
 
 def init_thumble():
     x,y,z = vesicle.axis
     vesicle.axis = vector(x,y,0)
     vesicle.length = Lves
+    vesicle.width = Wves
+    vesicle.hight = Wves
 
 def thumble():
     vesicle.rotate(angle=-deltaphi, axis=(0,0,1))
 
 def init_tremble():
-    vesicle.t = 0
-    vesicle.axis = (2,0,0)
-    vesicle.length = Lves-1
+    vesicle.t = pi/2
+    vesicle.axis = (3,0,0)
+    vesicle.length = Lves
+    vesicle.width = Wves
+    vesicle.hight = Wves
+    vesicle.volume = 4*pi*Lves*Wves*Wves/3
+    vesicle.Requal = (Lves*Wves*Wves)**(1/3)
+    
     
 def tremble():
+    x = sin(vesicle.t)
+    y = sin(2*vesicle.t)
+    vesicle.axis = vector(vesicle.Requal+x*(Lves-vesicle.Requal),y,0)
+    # keep the volume constant
+    w = sqrt(0.75*vesicle.volume/vesicle.length)
+    vesicle.width = w
+    vesicle.height = w
     vesicle.t += deltaphi
     if vesicle.t > pi:
         vesicle.t = 0
-    x = sin(vesicle.t)
-    y = sin(2*vesicle.t)
-    vesicle.axis = vector(2+x,y,0)
     
 def init_kayak():
     vesicle.axis = (4,1,0)
     vesicle.length = Lves
+    vesicle.width = Wves
+    vesicle.hight = Wves
     
 def kayak():
     vesicle.rotate(angle=deltaphi, axis=(1,0,0))
@@ -74,6 +89,8 @@ vesicle = ellipsoid(pos=(0,0,0),
     )
 vesicle.mode=modes.keys()[0]
 vesicle.t=0
+vesicle.volume = 4*pi*Lves*Wves*Wves/3
+vesicle.Requal = (Lves*Wves*Wves)**(1/3)
 title = text(pos=(0,2.5,0), width=3, height=0.5, align='center', color=color.yellow, 
                     text=modes.keys()[0])
 
