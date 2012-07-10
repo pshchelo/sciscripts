@@ -1,3 +1,4 @@
+from __future__ import division
 from visual.controls import *
 
 fps = 60
@@ -44,7 +45,7 @@ def thumble():
 
 def init_tremble():
     vesicle.t = pi/2
-    vesicle.axis = (3,0,0)
+    vesicle.axis = (1,0,0)
     vesicle.length = Lves
     vesicle.width = Wves
     vesicle.hight = Wves
@@ -57,7 +58,7 @@ def tremble():
     y = sin(2*vesicle.t)
     vesicle.axis = vector(vesicle.Requal+x*(Lves-vesicle.Requal),y,0)
     # keep the volume constant
-    w = sqrt(0.75*vesicle.volume/vesicle.length)
+    w = sqrt(0.75*vesicle.volume/vesicle.length/pi)
     vesicle.width = w
     vesicle.height = w
     vesicle.t += deltaphi
