@@ -2,7 +2,7 @@ from __future__ import division
 from visual.controls import *
 
 fps = 60
-deltaphi = pi / (2*fps)
+deltaphi = -pi / (2*fps)
 Lves = 3
 Wves = 2
 
@@ -27,42 +27,48 @@ def set_mode():
     title.text = vesicle.mode
     modes[vesicle.mode][0]()
 
-def tanktread():
+def init_tanktread():
     vesicle.axis = (1,1,0)
     vesicle.length = Lves
     vesicle.width = Wves
     vesicle.hight = Wves
+    vesicle.up = (0,1,0)
+    
+def tanktread():
+    pass
+    vesicle.up = rotate(vesicle.up, deltaphi, axis=(0,0,1))
 
 def init_thumble():
-    x,y,z = vesicle.axis
-    vesicle.axis = vector(x,y,0)
-    vesicle.length = Lves
-    vesicle.width = Wves
-    vesicle.hight = Wves
-
-def thumble():
-    vesicle.rotate(angle=-deltaphi, axis=(0,0,1))
-
-def init_tremble():
-    vesicle.t = pi/2
     vesicle.axis = (1,0,0)
     vesicle.length = Lves
     vesicle.width = Wves
     vesicle.hight = Wves
+    vesicle.up = (0,1,0)
+
+def thumble():
+    vesicle.rotate(angle=deltaphi, axis=(0,0,1))
+
+def init_tremble():
+    vesicle.t = 0
+    vesicle.axis = (1,0,0)
+    vesicle.length = Lves
+    vesicle.width = Wves
+    vesicle.hight = Wves
+    vesicle.up = (0,1,0)
     vesicle.volume = 4*pi*Lves*Wves*Wves/3
     vesicle.Requal = (Lves*Wves*Wves)**(1/3)
     
     
 def tremble():
-    x = sin(vesicle.t)
-    y = sin(2*vesicle.t)
+    x = -sin(vesicle.t)
+    y = -0.5*sin(2*vesicle.t)
     vesicle.axis = vector(vesicle.Requal+x*(Lves-vesicle.Requal),y,0)
     # keep the volume constant
     w = sqrt(0.75*vesicle.volume/vesicle.length/pi)
     vesicle.width = w
     vesicle.height = w
     vesicle.t += deltaphi
-    if vesicle.t > pi:
+    if fabs(vesicle.t) > pi:
         vesicle.t = 0
     
 def init_kayak():
@@ -70,12 +76,13 @@ def init_kayak():
     vesicle.length = Lves
     vesicle.width = Wves
     vesicle.hight = Wves
+    vesicle.up = (0,1,0)
     
 def kayak():
     vesicle.rotate(angle=deltaphi, axis=(1,0,0))
     
 modes = {
-        'Tank-treading': (tanktread, tanktread),
+        'Tank-treading': (init_tanktread, tanktread),
         'Thumbling': (init_thumble, thumble),
         'Trembling': (init_tremble, tremble),
         'Kayaking': (init_kayak, kayak),
@@ -89,6 +96,7 @@ vesicle = ellipsoid(pos=(0,0,0),
     material=materials.emissive,
     )
 vesicle.mode=modes.keys()[0]
+modes[vesicle.mode][0]()
 vesicle.t=0
 vesicle.volume = 4*pi*Lves*Wves*Wves/3
 vesicle.Requal = (Lves*Wves*Wves)**(1/3)
