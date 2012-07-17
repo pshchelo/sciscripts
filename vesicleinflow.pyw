@@ -35,7 +35,6 @@ def init_tanktread():
     vesicle.up = (0,1,0)
     
 def tanktread():
-    pass
     vesicle.up = rotate(vesicle.up, deltaphi, axis=(0,0,1))
 
 def init_thumble():
