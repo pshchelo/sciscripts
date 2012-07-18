@@ -38,11 +38,25 @@ def load_trajs(fname):
     return trajs
     
 def filter_trajs_by_length(trajs, minlength):
-    outtrajs = []
-    for traj in trajs:
-        if len(traj) >= minlength:
-            outtrajs.append(traj)
-    return outtrajs
+    return [traj for traj in trajs if len(traj) >= minlength]
+    
+def filter_trajs_by_backward(trajs):
+    return [traj for traj in trajs if not backstep_found(traj)]
+
+def backstep_found(traj):
+    velsy = traj[:,1,1]
+    return not (np.all(velsy >= 0) or np.all(velsy <=0))
+    
+def filter_trajs_by_sidesteps(trajs):
+    return [traj for traj in trajs if not sidestep_found(traj)]
+
+def sidestep_found(traj):
+    velsx = traj[:,1,0]
+    velsy = traj[:,1,1]
+    if np.min(np.fabs(velsx)) > np.min(np.fabs(velsy)):
+        return False
+    else:
+        return True
 
 def plot_trajs(trajs):
     """Plots trajectories as path and arrow field of corresponding speeds."""
@@ -59,6 +73,11 @@ def mean_speeds(trajs):
         avervel.append(aver[1])
         averx.append(aver[0,1])
     return np.asarray(averx), np.asarray(avervel)
+    
+def total_mean_speeds(avervel):
+    velx = avervel[:,0]
+    vely = avervel[:,1]
+    return (np.mean(velx), np.std(velx)), (np.mean(vely), np.std(vely))
 
 if __name__=='__main__':
     import sys
@@ -68,9 +87,9 @@ if __name__=='__main__':
     else:
         fname = 'mosaic.txt'
 
-    trajs = load_tracks(fname)
+    trajs = load_trajs(fname)
 
     plt.figure(1)
     minlength = 30
     plot_trajs(filter_trajs_by_length(trajs, minlength))
-    plt.show()    
+    plt.show()
