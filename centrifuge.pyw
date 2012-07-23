@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Calculate centrifuge parameters."""
-
+from __future__ import division
 import math
 import sys
-from PySide import QtCore, QtGui
+from PySide import QtGui
 
 class Centrifuge(QtGui.QWidget):
     def __init__(self):
@@ -12,9 +12,14 @@ class Centrifuge(QtGui.QWidget):
         self.initGui()
         
     def initGui(self):
-        hint = QtGui.QLabel(u'For 45˚ inclined geometry', self)
-        hint.setAlignment(QtCore.Qt.AlignHCenter)
-        diameterlabel = QtGui.QLabel('Diameter', self)
+        anglelabel = QtGui.QLabel('Inclination angle')
+        self.inclangle = QtGui.QDoubleSpinBox(self)
+        self.inclangle.setSuffix(u' °')
+        self.inclangle.setRange(0, 90)
+        self.inclangle.setValue(45)
+        self.inclangle.valueChanged.connect(self.updateResult)
+        
+        diameterlabel = QtGui.QLabel('Vescile Diameter', self)
         self.diameter = QtGui.QDoubleSpinBox(self)
         self.diameter.setSuffix(u' µm')
         self.diameter.setRange(1, 500)
@@ -49,40 +54,39 @@ class Centrifuge(QtGui.QWidget):
         self.outviscosity.setValue(1)
         self.outviscosity.valueChanged.connect(self.updateResult)
         
-        minrotradlabel = QtGui.QLabel('Min rotation radius', self)
+        minrotradlabel = QtGui.QLabel('Min rotation radius, mm', self)
         self.minrotationradius = QtGui.QDoubleSpinBox(self)
-        self.minrotationradius.setRange(0,100)
-        self.minrotationradius.setValue(3)
+        self.minrotationradius.setRange(0,1000)
+        self.minrotationradius.setValue(30)
         self.minrotationradius.valueChanged.connect(self.updateResult)
         
-        maxrotradlabel = QtGui.QLabel('Max rotation radius', self)
+        maxrotradlabel = QtGui.QLabel('Max rotation radius, mm', self)
         self.maxrotationradius = QtGui.QDoubleSpinBox(self)
-        self.maxrotationradius.setRange(0,100)
-        self.maxrotationradius.setValue(6.2)
+        self.maxrotationradius.setRange(0,1000)
+        self.maxrotationradius.setValue(62)
         self.maxrotationradius.valueChanged.connect(self.updateResult)
 
         self.result = QtGui.QLabel()
         self.updateResult()
         
         grid = QtGui.QGridLayout()
-        grid.addWidget(diameterlabel, 0, 0)
-        grid.addWidget(self.diameter, 0, 1)
-        grid.addWidget(timelabel, 1, 0)
-        grid.addWidget(self.time, 1, 1)
-        grid.addWidget(indensitylabel, 2, 0)
-        grid.addWidget(self.indensity,2, 1)
-        grid.addWidget(outdensitylabel, 3, 0)
-        grid.addWidget(self.outdensity, 3, 1)
-        grid.addWidget(outviscositylabel, 4, 0)
-        grid.addWidget(self.outviscosity, 4, 1)
-        grid.addWidget(minrotradlabel, 5, 0)
-        grid.addWidget(self.minrotationradius, 5, 1)
-        grid.addWidget(maxrotradlabel, 6, 0)
-        grid.addWidget(self.maxrotationradius, 6, 1)
+        
+        items = [(anglelabel, self.inclangle),
+                (diameterlabel, self.diameter),
+                (timelabel, self.time),
+                (indensitylabel, self.indensity),
+                (outdensitylabel, self.outdensity),
+                (outviscositylabel, self.outviscosity),
+                (minrotradlabel, self.minrotationradius),
+                (maxrotradlabel, self.maxrotationradius),
+                ]
+                
+        for index, item in enumerate(items):
+            label, widget = item
+            grid.addWidget(label, index, 0)
+            grid.addWidget(widget, index, 1)
 
         vbox = QtGui.QVBoxLayout()
-        vbox.addWidget(hint)
-        vbox.addSpacing(10)        
         vbox.addLayout(grid)
         vbox.addSpacing(10)
         vbox.addWidget(self.result)
@@ -92,9 +96,10 @@ class Centrifuge(QtGui.QWidget):
         self.show()
                 
     def updateResult(self):
-        self.result.setText('&omega; = <b>%i rpm</b>'%self.calculate())
+        self.result.setText('&omega; = <b>%i rpm</b>'%self.centrifuge())
     
-    def calculate(self):
+    def centrifuge(self):
+        """Calculates separation parameters for centrifugation."""
         diameter = self.diameter.value()  #in um
         time = self.time.value()  # in s
         density_in = self.indensity.value()  # in mg/ml
@@ -102,13 +107,27 @@ class Centrifuge(QtGui.QWidget):
         visc_out = self.outviscosity.value()  # in cP = mPa s
         r1 = self.minrotationradius.value()  # in whatever
         r2 = self.maxrotationradius.value()  # in whatever
-        
+        inclination = math.pi*self.inclangle.value() / 180 # now in radians
         # in (rad/sec)**2, 1e9 due to diameter in um and visosity in cP
-        angvelsqr = math.sqrt(2)*18e9*visc_out*math.log(r2/r1) / (
-                    diameter**2 * time * (density_in - density_out))
+        angvelsqr = 18e9*visc_out*math.log(r2/r1) / (math.cos(inclination) *
+                diameter**2 * time * (density_in - density_out))
         #in rpm
         angvel = math.sqrt(angvelsqr)*30/math.pi
         return angvel
+        
+#    def gravity(self):
+#        """Calculates time for separation in gravity field."""
+#        diameter = self.diameter.value() # in um
+#        density_in = self.indensity.value()  # in mg/ml
+#        density_out = self.outdensity.value()  # in mg/ml
+#        visc_out = self.outviscosity.value()  # in cP = mPa s
+#        length = self.droplength.value()  # in mm
+#        g = 9.81  # m/s**2
+#        
+#        # in seconds, 1e6 due to units of length, diameter and viscosity
+#        time = 18e6*visc_out*length / (
+#                            g*diameter*diameter*(density_in-density_out))
+#        return time
         
 def main():
     app = QtGui.QApplication(sys.argv)
