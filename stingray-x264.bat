@@ -1,0 +1,1 @@
+c:\bin\ffmpeg.exe -f image2 -i image%%05d.tif -r 16 -vcodec libx264 -crf 0 %1
