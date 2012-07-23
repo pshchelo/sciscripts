@@ -16,7 +16,7 @@ globpatterns = {
 }
 
 # for my fluctuation image files with all-numeric names with dashes
-PATTERN = 'img[0-9][0-9][0-9][0-9][0-9][0-9]_*.tif'
+PATTERN = '*.tif'
 fnames = iglob(PATTERN)
 print "Starting rename..."
 
