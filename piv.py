@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 """Analyze particle trajectories for determination of channel speed profile.
 
+The (lamilar) flow is supposed to be along Y direction
+
 Approximate workflow:
     load_trajs(fname) - load 'Results...txt' file saved by MOSAIC
+    filter_trajs_by_dir(trajs) - remove back- and sidesteps
     plot_trajs(filter_trajs_by_length(trajs, minL)) - decide how many 
         trajectories to keep
     meanvels(filter_trajs_by_length(trajs, minL)) - get mean X and Y velosities
         and their STDs
-"""
 
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -19,7 +22,6 @@ def load_trajs(fname):
     [point, pos or vel, x or y].
     
     """    
-
     with open(fname) as f:
         lines = f.readlines()
         
@@ -50,32 +52,51 @@ def filter_trajs_by_length(trajs, minlength):
     """Returns trajectories no shorter than minlength of points"""
     return [traj for traj in trajs if len(traj) >= minlength]
     
-def filter_trajs_by_backward(trajs):
-    return [traj for traj in trajs if not backstep_found(traj)]
+def filter_trajs_by_backsteps(trajs):
+    """Removes trajectoreis with backward steps"""
+    return [traj for traj in trajs if not check_backstep(traj)]
 
-def backstep_found(traj):
+def check_backstep(traj):
     """Check that all steps are in one Y direction"""
     velsy = traj[:-1,1,1]  # first :-1 due to last element being NaN
     return not (np.all(velsy >= 0) or np.all(velsy <=0))
     
 def filter_trajs_by_sidesteps(trajs):
-    return [traj for traj in trajs if not sidestep_found(traj)]
+    """Removes trajectories with sidesteps"""
+    return [traj for traj in trajs if not check_sidestep_hard(traj)]
+#    return [traj for traj in trajs if not check_sidestep_soft(traj)]
 
-def sidestep_found(traj):
-    """Returns True if maximal absolute X speed is bigger than minimal Y speed"""
+def check_sidestep_hard(traj):
+    """Returns True if maximal absolute X speed is bigger than minimal Y speed.
+
+    This is quite hard restriction, applying to the whole trajectory.    
+
+    """
     velsx = traj[:-1,1,0]  # first :-1 are due to last element being NaN
     velsy = traj[:-1,1,1]
-    if np.max(np.fabs(velsx)) > np.min(np.fabs(velsy)):
-        return True
-    else:
-        return False
+    return np.max(np.fabs(velsx)) > np.min(np.fabs(velsy))
+
+def check_sidestep_soft(traj):
+    """Returns True if for any step deviation in X is bigger than deviation in Y.
+
+    This restriction is softer, applying to individual steps only.
+    
+    """
+    velsx = traj[:-1,1,0]  # first :-1 are due to last element being NaN
+    velsy = traj[:-1,1,1]
+    return np.any(np.abs(velsx)>=np.abs(velsy)) 
 
 def filter_trajs_by_dir(trajs):
-    return [traj for traj in trajs if not (backstep_found(traj) or  
-                                           sidestep_found(traj))]
+    """Removes trajectories with either side- or backsteps."""
+    return filter_trajs_by_sidesteps(filter_trajs_by_backsteps(trajs))
+    
+def filter_trajs_by_deltaY(trajs, mindeltaY):
+    """Removes trajectories displaced along Y shorter than mindeltaY."""
+    return [traj for traj in trajs if np.abs(traj[0,0,1]-traj[-1,0,1]) >= mindeltaY]
 
-def plot_trajs(trajs, **kwargs):
+def plot_trajs(trajs, title=None):
     """Plots trajectories as path and arrow field of corresponding speeds."""
+    plt.figure(title)
     for traj in trajs:
         plt.plot(traj[:,0,0], traj[:,0,1])
         plt.quiver(traj[:,0,0], traj[:,0,1], traj[:,1,0], traj[:,1,1], 
@@ -83,6 +104,7 @@ def plot_trajs(trajs, **kwargs):
     plt.axis('equal')
 
 def mean_speeds(trajs):
+    """Returns average X position and average X and Y velocities for each trajectory."""
     avervel = []
     averx = []
     for traj in trajs:
@@ -92,29 +114,49 @@ def mean_speeds(trajs):
     return np.asarray(averx), np.asarray(avervel)
     
 def total_mean_speeds(avervel):
+    """Returns mean X and Y velocities (and their STD) averaged between trajectories."""
     velx = avervel[:,0]
     vely = avervel[:,1]
     return (np.mean(velx), np.std(velx)), (np.mean(vely), np.std(vely))
     
 def meanvels(trajs):
+    """Convenience function, combinig mean_speeds() and total_mean_speeds()"""
     averx, avervel = mean_speeds(trajs)
     return total_mean_speeds(avervel)
     
-def optimal_set(trajs, startLcut):
-    """"""
-    return
+def optimal_length(trajs, minnum):
+    """Returns optimal minimal length for trajectories to minimize STD of Y velocity."""
+    lengths = [len(traj) for traj in trajs]
+    maxlength = max(lengths)    
+    lrange = range(2, maxlength+1)
+    velystd = []
+    for l in lrange:
+        trajs_f = filter_trajs_by_length(trajs, l)
+        if len(trajs_f) >= minnum:
+            velystd.append(meanvels(trajs_f)[1][1])
+        else:
+            velystd.append(np.infty)
+    return lrange[np.argmin(velystd)]
+    
+def process_one(fname, minnum, mindeltaY, plot=False):
+    trajs = load_trajs(fname)
+    trajs_f = filter_trajs_by_dir(trajs)
+    trajs_l = filter_trajs_by_deltaY(trajs_f, mindeltaY)
+    l = optimal_length(trajs_l, minnum)
+    trajs_ff = filter_trajs_by_length(trajs_l, l)
+    vels = meanvels(trajs_ff)
+    if plot:
+        plot_trajs(trajs_ff, title='%s - %i trajs, minL=%i'%(fname, len(trajs_ff), l))
+    print "number of trajectories:", len(trajs_ff)
+    print "average X speed: %f +- %f"%(vels[0])
+    return l, vels[1]
+
+def process_all(fnames, minnum, mindeltaY, plot=False):
+    output = []
+    for fname in fnames:
+        l, velsy = process_one(fname, minnum, mindeltaY, plot=plot)
+        output.append(velsy)
+    return np.asarray(output)
 
 if __name__=='__main__':
-    import sys
-
-    if len(sys.argv) >1:
-        fname = sys.argv[1]
-    else:
-        fname = 'mosaic.txt'
-
-    trajs = load_trajs(fname)
-
-    plt.figure(1)
-    minlength = 30
-    plot_trajs(filter_trajs_by_length(trajs, minlength))
-    plt.show()
+    print __doc__
