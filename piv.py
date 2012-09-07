@@ -138,25 +138,36 @@ def optimal_length(trajs, minnum):
             velystd.append(np.infty)
     return lrange[np.argmin(velystd)]
     
-def process_one(fname, minnum, mindeltaY, plot=False):
+def process_one(fname, minnum, mindeltaY, plot=False, disp=False):
     trajs = load_trajs(fname)
     trajs_f = filter_trajs_by_dir(trajs)
     trajs_l = filter_trajs_by_deltaY(trajs_f, mindeltaY)
-    l = optimal_length(trajs_l, minnum)
-    trajs_ff = filter_trajs_by_length(trajs_l, l)
+    if len(trajs_l) > minnum:
+        l = optimal_length(trajs_l, minnum)
+        trajs_ff = filter_trajs_by_length(trajs_l, l)
+    else:
+        l = len(trajs_l)
+        trajs_ff = trajs_l
     vels = meanvels(trajs_ff)
     if plot:
         plot_trajs(trajs_ff, title='%s - %i trajs, minL=%i'%(fname, len(trajs_ff), l))
-    print "number of trajectories:", len(trajs_ff)
-    print "average X speed: %f +- %f"%(vels[0])
+    if disp:
+        print "number of trajectories:", len(trajs_ff)
+        print "average X speed: %f +- %f"%(vels[0])
     return l, vels[1]
 
-def process_all(fnames, minnum, mindeltaY, plot=False):
+def process_all(fnames, minnum, mindeltaY, plot=False, disp=False):
     output = []
     for fname in fnames:
-        l, velsy = process_one(fname, minnum, mindeltaY, plot=plot)
+        l, velsy = process_one(fname, minnum, mindeltaY, plot=plot, disp=disp)
         output.append(velsy)
-    return np.asarray(output)
+    output = np.abs(np.asarray(output))
+    # If somewhere only 1 trajectory was found, the STD of velocity would be
+    # zero, which will break the curve-fitting.
+    # Thus I manually set the error for such points as twice as large as 
+    # the largest error found for all the other points.
+    output[np.where(output[:,1] == 0)[0], 1] = 2 * max(output[:,1])
+    return output.T
 
 if __name__=='__main__':
     print __doc__
