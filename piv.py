@@ -6,7 +6,7 @@ The (lamilar) flow is supposed to be along Y direction
 Approximate workflow:
     load_trajs(fname) - load 'Results...txt' file saved by MOSAIC
     filter_trajs_by_dir(trajs) - remove back- and sidesteps
-    plot_trajs(filter_trajs_by_length(trajs, minL)) - decide how many 
+    plot_trajs(filter_trajs_by_length(trajs, minL)) - decide how many
         trajectories to keep
     meanvels(filter_trajs_by_length(trajs, minL)) - get mean X and Y velosities
         and their STDs
@@ -14,6 +14,7 @@ Approximate workflow:
 """
 import numpy as np
 import matplotlib.pyplot as plt
+
 
 def load_trajs(fname):
     """Loads trajectories from MOSAIC table and calculates momentary speeds.
@@ -24,28 +25,17 @@ def load_trajs(fname):
     """    
     with open(fname) as f:
         lines = f.readlines()
-        
-#    head = lines[0].split()
-    rawdata = [line.split() for line in lines[1:]]
-    
-#    ntracks = max([int(item[1]) for item in rawdata])
-    
+    rawdata = [line.split() for line in lines[1:]]   
     datadict = {}
-    
     for item in rawdata:
         ntrack = int(item[1])
         l = datadict.get(ntrack, [])
         l.append((item[4], item[3]))
         datadict[ntrack] = l
-        
     tracks = [np.asarray(datadict[key], dtype=float).T for key in sorted(datadict.keys())]
-    
     speeds = [np.column_stack((np.diff(track), np.asarray((np.NaN, np.NaN)))) for track in tracks]
-
     trajs = [np.hstack((tracks[i].T, speeds[i].T)) for i in range(len(tracks))]
-    
     trajs = [traj.reshape(len(traj),2,2) for traj in trajs]
-    
     return trajs
     
 def filter_trajs_by_length(trajs, minlength):
@@ -106,23 +96,35 @@ def plot_trajs(trajs, title=None):
 def mean_speeds(trajs):
     """Returns average X position and average X and Y velocities for each trajectory."""
     avervel = []
+    stdvels = []
     averx = []
     for traj in trajs:
         aver = traj[:-1].mean(0)
+        stdvel = traj[:-1].std(0)
         avervel.append(aver[1])
         averx.append(aver[0,1])
-    return np.asarray(averx), np.asarray(avervel)
+        stdvels.append(stdvel[1])
+    return np.asarray(averx), np.asarray(avervel), np.asarray(stdvels)
+
+def total_mean_speeds(avervel, stdvels):
+    """Returns mean X and Y velocities (and their STD) averaged between trajectories.
     
-def total_mean_speeds(avervel):
-    """Returns mean X and Y velocities (and their STD) averaged between trajectories."""
-    velx = avervel[:,0]
-    vely = avervel[:,1]
-    return (np.mean(velx), np.std(velx)), (np.mean(vely), np.std(vely))
+    If there is only one trajectory, return the STD of Y velocity for this one trajectory.
+    
+    """
+    velx = avervel[:, 0]
+    vely = avervel[:, 1]
+    stdvely = stdvels[:, 1]
+    if len(vely) == 1:
+        velystd = stdvely[0]
+    else:
+        velystd = np.std(vely)
+    return (np.mean(velx), np.std(velx)), (np.mean(vely), velystd)
     
 def meanvels(trajs):
     """Convenience function, combinig mean_speeds() and total_mean_speeds()"""
-    averx, avervel = mean_speeds(trajs)
-    return total_mean_speeds(avervel)
+    averx, avervel, stdvels = mean_speeds(trajs)
+    return total_mean_speeds(avervel, stdvels)
     
 def optimal_length(trajs, minnum):
     """Returns optimal minimal length for trajectories to minimize STD of Y velocity."""
@@ -162,11 +164,6 @@ def process_all(fnames, minnum, mindeltaY, plot=False, disp=False):
         l, velsy = process_one(fname, minnum, mindeltaY, plot=plot, disp=disp)
         output.append(velsy)
     output = np.abs(np.asarray(output))
-    # If somewhere only 1 trajectory was found, the STD of velocity would be
-    # zero, which will break the curve-fitting.
-    # Thus I manually set the error for such points as twice as large as 
-    # the largest error found for all the other points.
-    output[np.where(output[:,1] == 0)[0], 1] = 2 * max(output[:,1])
     return output.T
 
 if __name__=='__main__':
