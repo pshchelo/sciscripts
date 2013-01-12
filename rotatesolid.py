@@ -22,3 +22,23 @@ def volume_trapz_rotx(y, x):
     dv = np.pi*(r2integrated(x+dx)-r2integrated(x))
     dv = np.nan_to_num(dv)
     return np.sum(dv)
+
+def contour(img, seed):
+    """img is image, seed is a starting coordinate"""
+    line = [seed]
+    shifts_CW = np.asarray(
+        ((0,1), (1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1)))
+    neigbours = [seed + shift for shift in shifts_CW]
+    for neighbour in neighbours:
+        if img[neighbour]:
+            current = neighbour
+            break
+    line.append[current]
+    while current != seed:
+        neigbours = [current + shift for shift in shifts_CW]
+        for neighbour in neighbours:
+            if img[neighbour]:
+                current = neighbour
+                line.append(current)
+                break
+    return np.asarray(line)
