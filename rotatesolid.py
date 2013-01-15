@@ -23,22 +23,36 @@ def volume_trapz_rotx(y, x):
     dv = np.nan_to_num(dv)
     return np.sum(dv)
 
+def volume_concave(bodyy, bodyx, cavityy, cavityx):
+    return volume_trapz_rotx(bodyy, bodyx) - volume_trapz_rotx(cavityy, cavityx)
 def contour(img, seed):
-    """img is image, seed is a starting coordinate"""
+    """Returns correctly ordered contour made by non-zero elements of the image.
+
+    img is binary image as ``ndarray`` read by ``imread``
+    seed is a starting coordinate as tuple ``(y,x)``
+
+    img has to be cleared so that each point of the contour has exactly 2
+    neighbours in 8 directions, i.e. the contour is a line of 1 pixel width
+
+    """
     line = [seed]
     shifts_CW = np.asarray(
-        ((0,1), (1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1)))
-    neigbours = [seed + shift for shift in shifts_CW]
+        ((1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1),(0,-1),(1,-1)))
+    neighbours = [tuple(np.asarray(seed) + shift) for shift in shifts_CW]
     for neighbour in neighbours:
         if img[neighbour]:
             current = neighbour
+            line.append(current)
             break
-    line.append[current]
-    while current != seed:
-        neigbours = [current + shift for shift in shifts_CW]
+    nofpoints = len(np.nonzero(img)[0])
+    for _i in range(nofpoints - 2):
+        neighbours = [tuple(np.asarray(current) + shift) for shift in shifts_CW]
         for neighbour in neighbours:
-            if img[neighbour]:
+            if img[neighbour] and neighbour != line[-2]:
                 current = neighbour
                 line.append(current)
                 break
-    return np.asarray(line)
+    if len(line) != nofpoints:
+        return None
+    else:
+        return np.asarray(line)
