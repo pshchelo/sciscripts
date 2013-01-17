@@ -22,9 +22,21 @@ def volume_trapz_rotx(y, x):
     dv = np.pi*(r2integrated(x+dx)-r2integrated(x))
     dv = np.nan_to_num(dv)
     return np.sum(dv)
+def surface_trapz_rotx(y, x):
+    """Surface of solid of rotation around X axis.
+
+    """
+    dx = np.diff(x)
+    dy = np.diff(y)
+    x = x[:-1]
+    y = y[:-1]
+    # taking each slice as a truncated cone with radii y and y+dy and height dx
+    dS = np.pi * (2*y+dy) * np.sqrt(dx**2 + dy**2)
+    return sum(dS)
 
 def volume_concave(bodyy, bodyx, cavityy, cavityx):
     return volume_trapz_rotx(bodyy, bodyx) - volume_trapz_rotx(cavityy, cavityx)
+
 def contour(img, seed):
     """Returns correctly ordered contour made by non-zero elements of the image.
 
