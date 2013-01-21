@@ -46,9 +46,9 @@ def contour(img, seed):
 
     """
     line = [seed]
-    shifts_CW = np.asarray(
+    shifts_CCW = np.asarray(
         ((1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1),(0,-1),(1,-1)))
-    neighbours = [tuple(np.asarray(seed) + shift) for shift in shifts_CW]
+    neighbours = [tuple(np.asarray(seed) + shift) for shift in shifts_CCW]
     for neighbour in neighbours:
         if img[neighbour]:
             current = neighbour
@@ -56,7 +56,8 @@ def contour(img, seed):
             break
     nofpoints = len(np.nonzero(img)[0])
     for _i in range(nofpoints - 2):
-        neighbours = [tuple(np.asarray(current) + shift) for shift in shifts_CW]
+        neighbours = [tuple(np.asarray(current) + shift) 
+                        for shift in shifts_CCW]
         for neighbour in neighbours:
             if img[neighbour] and neighbour != line[-2]:
                 current = neighbour
