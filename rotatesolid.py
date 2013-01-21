@@ -26,7 +26,13 @@ def surface_trapz_rotx(y, x):
     dS = np.pi * (2*y+dy) * np.sqrt(dx**2 + dy**2)
     return sum(dS)
 
-def volume_concave(bodyy, bodyx, cavityy, cavityx):
+def volume_concave(contoury, contourx):
+    """Volume of a body of rotation with a cavity at the left side of X"""
+    border = np.argmin(contourx)
+    cavityx = contourx[:border+1]
+    cavityy = contoury[:border+1]
+    bodyx = contourx[border:]
+    bodyy = contoury[border:]
     return volume_trapz_rotx(bodyy, bodyx) - volume_trapz_rotx(cavityy, cavityx)
 
 def contour(img, seed):
