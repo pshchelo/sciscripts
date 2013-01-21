@@ -67,3 +67,31 @@ def contour(img, seed):
         return None
     else:
         return np.asarray(line)
+
+def process(img, seed):
+    """Calculate volume, equivolumetric radius and excess area."""
+    contoury, contourx = np.transpose(contour(img, seed))
+    contoury = contoury - seed[0]
+
+    top = contoury<0
+    bottom = contoury>=0
+    topx = contourx[top]
+    topy = -contoury[top]
+    topx = topx[::-1]
+    topy = topy[::-1]
+    bottomx = contourx[bottom]
+    bottomy = contoury[bottom]
+    
+    volume_bottom = volume_concave(bottomy, bottomx)
+    volume_top = volume_concave(topy, topx)
+    
+    area_bottom = surface_trapz_rotx(bottomy, bottomx)
+    area_top = surface_trapz_rotx(topy, topx)
+    
+    V = (volume_bottom+volume_top)/2
+    A = (area_bottom+area_top)/2
+    
+    R0 = (0.75*V/np.pi)**(1/3)
+    dA = 4*np.pi*(A/(36*np.pi*V*V)**(1/3)-1)
+    
+    return {'V':V, 'R0':R0, 'dA':dA, '_seed':seed}
