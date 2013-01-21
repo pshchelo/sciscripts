@@ -25,7 +25,13 @@ def surface_trapz_rotx(y, x):
     dS = np.pi * np.abs(y1+y2) * np.sqrt(dx**2 + dy**2)
     return np.sum(dS)
 
-def volume_concave(bodyy, bodyx, cavityy, cavityx):
+def volume_concave(contoury, contourx):
+    """Volume of a body of rotation with a cavity at the left side of X"""
+    border = np.argmin(contourx)
+    cavityx = contourx[:border+1]
+    cavityy = contoury[:border+1]
+    bodyx = contourx[border:]
+    bodyy = contoury[border:]
     return volume_trapz_rotx(bodyy, bodyx) - volume_trapz_rotx(cavityy, cavityx)
 
 def contour(img, seed):
@@ -39,9 +45,9 @@ def contour(img, seed):
 
     """
     line = [seed]
-    shifts_CW = np.asarray(
+    shifts_CCW = np.asarray(
         ((1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1),(0,-1),(1,-1)))
-    neighbours = [tuple(np.asarray(seed) + shift) for shift in shifts_CW]
+    neighbours = [tuple(np.asarray(seed) + shift) for shift in shifts_CCW]
     for neighbour in neighbours:
         if img[neighbour]:
             current = neighbour
@@ -49,7 +55,8 @@ def contour(img, seed):
             break
     nofpoints = len(np.nonzero(img)[0])
     for _i in range(nofpoints - 2):
-        neighbours = [tuple(np.asarray(current) + shift) for shift in shifts_CW]
+        neighbours = [tuple(np.asarray(current) + shift) 
+                        for shift in shifts_CCW]
         for neighbour in neighbours:
             if img[neighbour] and neighbour != line[-2]:
                 current = neighbour
@@ -59,3 +66,31 @@ def contour(img, seed):
         return None
     else:
         return np.asarray(line)
+
+def process(img, seed):
+    """Calculate volume, equivolumetric radius and excess area."""
+    contoury, contourx = np.transpose(contour(img, seed))
+    contoury = contoury - seed[0]
+
+    top = contoury<0
+    bottom = contoury>=0
+    topx = contourx[top]
+    topy = -contoury[top]
+    topx = topx[::-1]
+    topy = topy[::-1]
+    bottomx = contourx[bottom]
+    bottomy = contoury[bottom]
+    
+    volume_bottom = volume_concave(bottomy, bottomx)
+    volume_top = volume_concave(topy, topx)
+    
+    area_bottom = surface_trapz_rotx(bottomy, bottomx)
+    area_top = surface_trapz_rotx(topy, topx)
+    
+    V = (volume_bottom+volume_top)/2
+    A = (area_bottom+area_top)/2
+    
+    R0 = (0.75*V/np.pi)**(1/3)
+    dA = 4*np.pi*(A/(36*np.pi*V*V)**(1/3)-1)
+    
+    return {'V':V, 'R0':R0, 'dA':dA, '_seed':seed}
