@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 from __future__ import division
-import numpy as np 
+import numpy as np
 
 def volume_trapz_rotx(y, x):
     """Volume of solid of rotation around X-axis.
     
     """
     dx = np.diff(x)
-    dy = np.diff(y)
-    x = x[:-1]
-    y = y[:-1]
+    y2 = np.roll(y, -1)[:-1]
+    y1 = y[:-1]
     # taking each slice as a truncated cone with radii y and y+dy and height dx
-    dV = np.pi/3 * np.abs(dx) * (y**2 + (y+dy)**2 + y*(y+dy))
-    return sum(dV)
+    dV = np.pi/3 * dx * (y1**2 + y2**2 + y1*y2))
+    return np.abs(np.sum(dV))
 
 def surface_trapz_rotx(y, x):
     """Surface of solid of rotation around X axis.
@@ -20,11 +19,11 @@ def surface_trapz_rotx(y, x):
     """
     dx = np.diff(x)
     dy = np.diff(y)
-    x = x[:-1]
-    y = y[:-1]
+    y1 = y[:-1]
+    y2 = np.roll(y, -1)[:-1]
     # taking each slice as a truncated cone with radii y and y+dy and height dx
-    dS = np.pi * (2*y+dy) * np.sqrt(dx**2 + dy**2)
-    return sum(dS)
+    dS = np.pi * np.abs(y1+y2) * np.sqrt(dx**2 + dy**2)
+    return np.sum(dS)
 
 def volume_concave(bodyy, bodyx, cavityy, cavityx):
     return volume_trapz_rotx(bodyy, bodyx) - volume_trapz_rotx(cavityy, cavityx)
