@@ -65,13 +65,10 @@ def contour(img, seed):
     if len(line) != nofpoints:
         return None
     else:
-        return np.asarray(line)
+        return np.transpose(np.asarray(line))
 
-def process(img, seed):
-    """Calculate volume, equivolumetric radius and excess area."""
-    contoury, contourx = np.transpose(contour(img, seed))
-    contoury = contoury - seed[0]
-
+def split_top_bottom(contoury, contourx):
+    """Split closed CCW contour to top and bottom halves"""
     top = contoury<0
     bottom = contoury>=0
     topx = contourx[top]
@@ -80,12 +77,21 @@ def process(img, seed):
     topy = topy[::-1]
     bottomx = contourx[bottom]
     bottomy = contoury[bottom]
+    return (topy, topx), (bottomy, bottomx)
     
-    volume_bottom = volume_concave(bottomy, bottomx)
-    volume_top = volume_concave(topy, topx)
+def process(img, seed):
+    """Calculate volume, equivolumetric radius and excess area."""
+    contourxy = contour(img, seed)
+    contour_shifted = np.copy(contourxy)
+    contour_shifted[0,:] -= seed[0]
     
-    area_bottom = surface_trapz_rotx(bottomy, bottomx)
-    area_top = surface_trapz_rotx(topy, topx)
+    top, bottom = split_top_bottom(*contour_shifted)
+    
+    volume_bottom = volume_concave(*bottom)
+    volume_top = volume_concave(*top)
+    
+    area_bottom = surface_trapz_rotx(*bottom)
+    area_top = surface_trapz_rotx(*top)
     
     V = (volume_bottom+volume_top)/2
     A = (area_bottom+area_top)/2
@@ -93,4 +99,4 @@ def process(img, seed):
     R0 = (0.75*V/np.pi)**(1/3)
     dA = 4*np.pi*(A/(36*np.pi*V*V)**(1/3)-1)
     
-    return {'V':V, 'R0':R0, 'dA':dA, '_seed':seed}
+    return {'V':V, 'R0':R0, 'dA':dA, 'seed':seed, 'contour':contourxy.tolist()}
