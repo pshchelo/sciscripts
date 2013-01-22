@@ -10,7 +10,7 @@ def volume_trapz_rotx(y, x):
     y2 = np.roll(y, -1)[:-1]
     y1 = y[:-1]
     # taking each slice as a truncated cone with radii y and y+dy and height dx
-    dV = np.pi/3 * dx * (y1**2 + y2**2 + y1*y2))
+    dV = np.pi/3 * dx * (y1**2 + y2**2 + y1*y2)
     return np.abs(np.sum(dV))
 
 def surface_trapz_rotx(y, x):
