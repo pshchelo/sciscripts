@@ -6,11 +6,12 @@ import math
 import sys
 from PySide import QtGui
 
+
 class CentrifugePanel(QtGui.QWidget):
     def __init__(self, parent):
         super(CentrifugePanel, self).__init__(parent=parent)
         self.initPanel()
-        
+
     def initPanel(self):
         anglelabel = QtGui.QLabel('Inclination angle')
         self.inclangle = QtGui.QDoubleSpinBox(self)
@@ -18,14 +19,14 @@ class CentrifugePanel(QtGui.QWidget):
         self.inclangle.setRange(0, 90)
         self.inclangle.setValue(45)
         self.inclangle.valueChanged.connect(self.updateResult)
-        
+
         diameterlabel = QtGui.QLabel('Vescile Diameter', self)
         self.diameter = QtGui.QDoubleSpinBox(self)
         self.diameter.setSuffix(u' µm')
         self.diameter.setRange(1, 500)
         self.diameter.setValue(20)
         self.diameter.valueChanged.connect(self.updateResult)
-        
+
         timelabel = QtGui.QLabel('Time', self)
         self.time = QtGui.QDoubleSpinBox(self)
         self.time.setSuffix(' s')
@@ -39,27 +40,27 @@ class CentrifugePanel(QtGui.QWidget):
         self.indensity.setRange(0,10000)
         self.indensity.setValue(1001)
         self.indensity.valueChanged.connect(self.updateResult)
-        
+
         outdensitylabel = QtGui.QLabel('Outside density', self)
         self.outdensity = QtGui.QDoubleSpinBox(self)
         self.outdensity.setSuffix(' mg/ml')
         self.outdensity.setRange(0,10000)
         self.outdensity.setValue(1000)
         self.outdensity.valueChanged.connect(self.updateResult)
-        
+
         outviscositylabel = QtGui.QLabel('Outside viscosity', self)
         self.outviscosity = QtGui.QDoubleSpinBox(self)
         self.outviscosity.setSuffix(' cP')
         self.outviscosity.setRange(0,1000)
         self.outviscosity.setValue(1)
         self.outviscosity.valueChanged.connect(self.updateResult)
-        
+
         minrotradlabel = QtGui.QLabel('Min rotation radius, mm', self)
         self.minrotationradius = QtGui.QDoubleSpinBox(self)
         self.minrotationradius.setRange(0,1000)
         self.minrotationradius.setValue(30)
         self.minrotationradius.valueChanged.connect(self.updateResult)
-        
+
         maxrotradlabel = QtGui.QLabel('Max rotation radius, mm', self)
         self.maxrotationradius = QtGui.QDoubleSpinBox(self)
         self.maxrotationradius.setRange(0,1000)
@@ -68,9 +69,9 @@ class CentrifugePanel(QtGui.QWidget):
 
         self.result = QtGui.QLabel()
         self.updateResult()
-        
+
         grid = QtGui.QGridLayout()
-        
+
         items = [(anglelabel, self.inclangle),
                 (diameterlabel, self.diameter),
                 (timelabel, self.time),
@@ -80,7 +81,7 @@ class CentrifugePanel(QtGui.QWidget):
                 (minrotradlabel, self.minrotationradius),
                 (maxrotradlabel, self.maxrotationradius),
                 ]
-                
+
         for index, item in enumerate(items):
             label, widget = item
             grid.addWidget(label, index, 0)
@@ -90,12 +91,12 @@ class CentrifugePanel(QtGui.QWidget):
         vbox.addLayout(grid)
         vbox.addSpacing(10)
         vbox.addWidget(self.result)
-        
+
         self.setLayout(vbox)
-                
+
     def updateResult(self):
         self.result.setText('&omega; = <b>%i rpm</b>'%self.centrifuge())
-    
+
     def centrifuge(self):
         """Calculates separation parameters for centrifugation."""
         diameter = self.diameter.value()  #in um
@@ -112,12 +113,12 @@ class CentrifugePanel(QtGui.QWidget):
         #in rpm
         angvel = math.sqrt(angvelsqr)*30/math.pi
         return angvel
-        
+
 class GravityPanel(QtGui.QWidget):
     def __init__(self, parent):
         super(GravityPanel, self).__init__(parent=parent)
         self.initPanel()
-        
+
     def initPanel(self):
         diameterlabel = QtGui.QLabel('Vescile Diameter', self)
         self.diameter = QtGui.QDoubleSpinBox(self)
@@ -132,21 +133,21 @@ class GravityPanel(QtGui.QWidget):
         self.indensity.setRange(0,10000)
         self.indensity.setValue(1001)
         self.indensity.valueChanged.connect(self.updateResult)
-        
+
         outdensitylabel = QtGui.QLabel('Outside density', self)
         self.outdensity = QtGui.QDoubleSpinBox(self)
         self.outdensity.setSuffix(' mg/ml')
         self.outdensity.setRange(0,10000)
         self.outdensity.setValue(1000)
         self.outdensity.valueChanged.connect(self.updateResult)
-        
+
         outviscositylabel = QtGui.QLabel('Outside viscosity', self)
         self.outviscosity = QtGui.QDoubleSpinBox(self)
         self.outviscosity.setSuffix(' cP')
         self.outviscosity.setRange(0,1000)
         self.outviscosity.setValue(1)
         self.outviscosity.valueChanged.connect(self.updateResult)
-        
+
         falllabel = QtGui.QLabel('Fall distance, mm', self)
         self.falldistance = QtGui.QDoubleSpinBox(self)
         self.falldistance.setRange(0,1000)
@@ -155,16 +156,16 @@ class GravityPanel(QtGui.QWidget):
 
         self.result = QtGui.QLabel()
         self.updateResult()
-        
+
         grid = QtGui.QGridLayout()
-        
+
         items = [(diameterlabel, self.diameter),
                 (indensitylabel, self.indensity),
                 (outdensitylabel, self.outdensity),
                 (outviscositylabel, self.outviscosity),
                 (falllabel, self.falldistance),
                 ]
-                
+
         for index, item in enumerate(items):
             label, widget = item
             grid.addWidget(label, index, 0)
@@ -174,15 +175,15 @@ class GravityPanel(QtGui.QWidget):
         vbox.addLayout(grid)
         vbox.addSpacing(10)
         vbox.addWidget(self.result)
-        
+
         self.setLayout(vbox)
-    
+
     def updateResult(self):
         seconds = self.gravity()
         hours = seconds // 3600
         self.result.setText(
             't = <b>%i s</b> &asymp; <b>%i h</b>'%(seconds, hours))
-    
+
     def gravity(self):
         """Calculates time for separation in gravity field."""
         diameter = self.diameter.value() # in um
@@ -191,7 +192,7 @@ class GravityPanel(QtGui.QWidget):
         visc_out = self.outviscosity.value()  # in cP = mPa s
         length = self.falldistance.value()  # in mm
         g = 9.81  # m/s**2
-        
+
         # in seconds, 1e6 due to units of length, diameter and viscosity
         time = 18e6*visc_out*length / (
                             g*diameter*diameter*(density_in-density_out))
@@ -210,7 +211,7 @@ class Separation(QtGui.QWidget):
         self.setLayout(vbox)
         self.setWindowTitle("Vesicle separation")
         self.show()
-        
+
 def main():
     app = QtGui.QApplication(sys.argv)
     window = Separation()
