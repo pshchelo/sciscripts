@@ -9,8 +9,14 @@ centerimage.pyw
 cropimages.py
     Crop images from pipette aspiration experiment.
 
+curlybracesmonth.py
+    Puts month abbreviation inside curly braces in BibTeX file.
+	
 fluctrename.py
     Rename recovered TIF fluctuation images files.
+
+mm2Pa.py
+    Convert mmH2O to Pascals.
 
 moverenamed.py
     Moves all recovered files of given extension to a predefined folder.
