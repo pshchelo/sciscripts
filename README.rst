@@ -4,7 +4,7 @@ Science scripts
 Small utilities written for various scientific purposes
 
 centerimage.pyw
-   Center an image on the camera sensor.
+   Center an image on the camera sensor. (requires wxPython)
 
 cropimages.py
     Crop images from pipette aspiration experiment.
@@ -16,7 +16,7 @@ fluctrename.py
     Rename recovered TIF fluctuation images files.
 
 mm2Pa.py
-    Convert mmH2O to Pascals.
+    Convert mmH2O to Pascals. (requires numpy)
 
 moverenamed.py
     Moves all recovered files of given extension to a predefined folder.
@@ -26,14 +26,13 @@ renameyear.py
     saved with wrong year in their name.
 
 separation.pyw
-    Calculate centrifuge parameters.
+    Calculate centrifuge parameters. (requires PySide)
 
 stingray-x264.bat
     Make a movie from image series with ffmpeg.
 
 sugars.pyw
-    Calculate concentrations of sugar solutions complementary to dextran.
+    Calculate concentrations of sugar solutions complementary to dextran. (requires PySide)
 
 vesicleinflow.pyw
-    Cartoon demo of various movement modes 
-    of a vesicle in the linear shear flow.
+    Cartoon demo of various movement modes of a vesicle in the linear shear flow. (requires VPython)
